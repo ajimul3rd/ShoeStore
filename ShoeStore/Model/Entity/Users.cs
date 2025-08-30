@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using ShoeStore.Shared.Enums;
 
 namespace ShoeStore.Model.Entity
 {
@@ -17,6 +18,10 @@ namespace ShoeStore.Model.Entity
         public string? UserContact { get; set; }
 
         public string? UserPassword { get; set; }
+
+        [Column(TypeName = "nvarchar(50)")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public UserRole? Role { get; set; }
 
         public bool IsActive { get; set; } = true;
 

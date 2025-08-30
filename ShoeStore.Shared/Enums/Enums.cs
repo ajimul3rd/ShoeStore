@@ -34,5 +34,9 @@
         Work,
         Other
     }
-
+    public enum UserRole
+    {
+        ADMIN,
+        CLIENT
+    }
 }

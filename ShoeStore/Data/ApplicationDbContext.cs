@@ -179,26 +179,6 @@ namespace ShoeStore.Data
                 .Property(sv => sv.Price)
                 .HasPrecision(18, 2);
 
-            //// Configure default values
-            //modelBuilder.Entity<Users>()
-            //    .Property(u => u.CreatedAt)
-            //    .HasDefaultValueSql("GETUTCDATE()");
-
-            //modelBuilder.Entity<Users>()
-            //    .Property(u => u.IsActive)
-            //    .HasDefaultValue(true);
-
-            //modelBuilder.Entity<ShippingAddress>()
-            //    .Property(sa => sa.Country)
-            //    .HasDefaultValue("India");
-
-            //modelBuilder.Entity<ShippingAddress>()
-            //    .Property(sa => sa.IsDefault)
-            //    .HasDefaultValue(false);
-
-            //modelBuilder.Entity<ShippingAddress>()
-            //    .Property(sa => sa.IsActive)
-            //    .HasDefaultValue(true);
         }
        
     }
