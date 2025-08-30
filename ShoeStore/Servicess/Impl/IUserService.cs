@@ -1,7 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Internal;
-using OfficeProject.Authentication;
-using ShoeStore.Model.Entity;
-using ShoeStore.Shared.Dto;
+﻿using ShoeStore.Model.Entity;
 
 namespace ShoeStore.Servicess.Impl
 {

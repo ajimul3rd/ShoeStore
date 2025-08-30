@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Blazored.LocalStorage;
 using System.IdentityModel.Tokens.Jwt;
+namespace ShoeStore.Auth;
 
 public class CustomAuthStateProvider : AuthenticationStateProvider
 {

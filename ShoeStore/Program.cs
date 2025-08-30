@@ -7,6 +7,10 @@ using ShoeStore.Data;
 using ShoeStore.Maping;
 using System.Text;
 using Blazored.LocalStorage;
+using ShoeStore.Servicess;
+using ShoeStore.Servicess.Impl;
+using log4net.Config;
+using log4net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,15 +22,25 @@ builder.Services.AddRazorComponents()
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
+//DataSerializer
+builder.Services.AddScoped<IDataSerializer, DataSerializer>();
+
+// HeaderService
+builder.Services.AddScoped<IAuthHeaderService, AuthHeaderService>();
+
+// Configure log4net
+var entryAssembly = System.Reflection.Assembly.GetEntryAssembly()
+                    ?? typeof(Program).Assembly; // fallback
+
+var logRepository = LogManager.GetRepository(entryAssembly);
+XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+
 // Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException("DefaultConnection is not set in configuration.");
 }
-
-//builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
-//    options.UseSqlServer(connectionString));
 
 // For EF Core migrations, also add the regular DbContext registration
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

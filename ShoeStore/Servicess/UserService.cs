@@ -1,19 +1,9 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using OfficeProject.Authentication;
 using ShoeStore.Data;
 using ShoeStore.Model.Entity;
 using ShoeStore.Servicess.Impl;
-using ShoeStore.Shared.Dto;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace ShoeStore.Servicess
 {
@@ -42,16 +32,14 @@ namespace ShoeStore.Servicess
         {
             using (var context = _dbContextFactory.CreateDbContext())
             {
-                // Find the user by the provided id (not user.UserId)
                 return await context.Users.FirstOrDefaultAsync(u => u.UserName == username);
             }
         }
         public async Task<Users?> FindUserByIdAsync(int id)
         {
-            using (var context = _dbContextFactory.CreateDbContext())
-            {
-                return await context.Users.FirstOrDefaultAsync(u => u.UserId == id);
-            }
+           
+            using var context = _dbContextFactory.CreateDbContext();
+            return await context.Users.FindAsync(id);
         }
         public async Task AddUserAsync(Users user)
         {
@@ -94,15 +82,11 @@ namespace ShoeStore.Servicess
 
         public async Task DeleteUserAsync(int id)
         {
-            using (var context = _dbContextFactory.CreateDbContext())
-            {
-                var user = await context.Users.FirstOrDefaultAsync(u => u.UserId == id);
-                if (user != null)
-                {
-                    context.Users.Remove(user);
-                    await context.SaveChangesAsync();
-                }
-            }
+            using var context = _dbContextFactory.CreateDbContext();
+            var user = new Users { UserId = id };
+            context.Users.Attach(user);
+            context.Users.Remove(user);
+            await context.SaveChangesAsync();
         }
 
         public async Task UpdateRefreshToken(int userId, string refreshToken)
