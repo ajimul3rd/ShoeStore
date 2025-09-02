@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ShoeStore.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class UpdateModelChanges : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -91,6 +91,7 @@ namespace ShoeStore.Migrations
                     ProductId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
@@ -101,7 +102,12 @@ namespace ShoeStore.Migrations
                         name: "FK_Products_Categories_CategoryId",
                         column: x => x.CategoryId,
                         principalTable: "Categories",
-                        principalColumn: "CategoryId",
+                        principalColumn: "CategoryId");
+                    table.ForeignKey(
+                        name: "FK_Products_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -131,8 +137,7 @@ namespace ShoeStore.Migrations
                         name: "FK_ShippingAddresses_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -231,7 +236,7 @@ namespace ShoeStore.Migrations
                         column: x => x.ShippingAddressId,
                         principalTable: "ShippingAddresses",
                         principalColumn: "AddressId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Orders_Users_UserId",
                         column: x => x.UserId,
@@ -269,7 +274,7 @@ namespace ShoeStore.Migrations
                 {
                     WishlistId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
+                    User_Id = table.Column<int>(type: "int", nullable: false),
                     VariantsId = table.Column<int>(type: "int", nullable: false),
                     AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -280,14 +285,12 @@ namespace ShoeStore.Migrations
                         name: "FK_Wishlists_ProductVariants_VariantsId",
                         column: x => x.VariantsId,
                         principalTable: "ProductVariants",
-                        principalColumn: "VariantsId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "VariantsId");
                     table.ForeignKey(
-                        name: "FK_Wishlists_Users_UserId",
-                        column: x => x.UserId,
+                        name: "FK_Wishlists_Users_User_Id",
+                        column: x => x.User_Id,
                         principalTable: "Users",
-                        principalColumn: "UserId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "UserId");
                 });
 
             migrationBuilder.CreateTable(
@@ -475,6 +478,11 @@ namespace ShoeStore.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Products_UserId",
+                table: "Products",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductVariants_ProductId",
                 table: "ProductVariants",
                 column: "ProductId");
@@ -502,9 +510,9 @@ namespace ShoeStore.Migrations
                 filter: "[UserEmail] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Wishlists_UserId_VariantsId",
+                name: "IX_Wishlists_User_Id_VariantsId",
                 table: "Wishlists",
-                columns: new[] { "UserId", "VariantsId" },
+                columns: new[] { "User_Id", "VariantsId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -559,10 +567,10 @@ namespace ShoeStore.Migrations
                 name: "Products");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Categories");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "Users");
         }
     }
 }

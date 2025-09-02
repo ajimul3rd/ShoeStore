@@ -12,7 +12,7 @@ namespace ShoeStore.Model.Entity
 
         [Required]
         [ForeignKey("Users")]
-        public int UserId { get; set; }
+        public int User_Id { get; set; }
 
         [Required]
         [ForeignKey("ProductVariant")]

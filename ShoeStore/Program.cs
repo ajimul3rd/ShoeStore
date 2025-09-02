@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ShoeStore.Components;
 using ShoeStore.Data;
+using ShoeStore.Auth;
 using ShoeStore.Maping;
 using System.Text;
 using Blazored.LocalStorage;
@@ -11,10 +12,27 @@ using ShoeStore.Servicess;
 using ShoeStore.Servicess.Impl;
 using log4net.Config;
 using log4net;
+using System.Reflection;
+using ShoeStore.Components.ApiService;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
+// Controllers with JSON options
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: true));
+        // options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve; // if circular references needed
+    });
+
+// Razor Components
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
@@ -22,17 +40,8 @@ builder.Services.AddRazorComponents()
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
-//DataSerializer
-builder.Services.AddScoped<IDataSerializer, DataSerializer>();
-
-// HeaderService
-builder.Services.AddScoped<IAuthHeaderService, AuthHeaderService>();
-
-// Configure log4net
-var entryAssembly = System.Reflection.Assembly.GetEntryAssembly()
-                    ?? typeof(Program).Assembly; // fallback
-
-var logRepository = LogManager.GetRepository(entryAssembly);
+// Configure Log4Net
+var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly()!);
 XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
 // Database
@@ -42,9 +51,9 @@ if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("DefaultConnection is not set in configuration.");
 }
 
-// For EF Core migrations, also add the regular DbContext registration
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
+
 
 // Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
@@ -102,36 +111,86 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddScoped<IAuthHeaderService, AuthHeaderService>();
+
 // Blazored LocalStorage
 builder.Services.AddBlazoredLocalStorage(config =>
 {
     config.JsonSerializerOptions.WriteIndented = true;
 });
 
-// Build the app AFTER all services are configured
+
+// Services registration
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddScoped<CustomAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
+provider.GetRequiredService<CustomAuthStateProvider>());
+builder.Services.AddScoped<ApiServices>();
+builder.Services.AddScoped<IDataSerializer, DataSerializer>();
+builder.Services.AddSingleton<AppState>();
+
+
+// HttpClient registration using IHttpClientFactory (recommended)
+builder.Services.AddHttpClient<ApiServices>(client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"] ?? "https://localhost:7153/");
+});
+
+// Authorization policies
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy => policy.RequireRole("ADMIN"))
+    .AddPolicy("AdminOrManager", policy => policy.RequireRole("ADMIN", "MANAGER"))
+    .AddPolicy("AdminOrManagerOrUser", policy => policy.RequireRole("ADMIN", "MANAGER", "USER"))
+    .AddPolicy("User", policy => policy.RequireRole("USER"));
+
+// Controllers
+builder.Services.AddControllers();
+
+
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+
+
+// ------------------ Build App ------------------
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Apply EF migrations
+using (var scope = app.Services.CreateScope())
 {
-    app.UseWebAssemblyDebugging();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate();
 }
-else
+
+
+
+// ------------------ Middleware Pipeline ------------------
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
 app.UseHttpsRedirection();
-
-// Add authentication and authorization middleware
+app.UseStaticFiles();
+app.UseRouting();
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseAntiforgery(); // ✅ Must be placed here (AFTER Authentication & Authorization, BETWEEN UseRouting and MapEndpoints)
 
-app.UseAntiforgery();
-
-app.MapStaticAssets();
+//Map endpoints
+app.MapControllers();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()

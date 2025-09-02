@@ -1,0 +1,23 @@
+﻿@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IDataSerializer? DataSerializer
+
+<AuthorizeView>
+    <Authorized>
+    </Authorized>
+    <NotAuthorized>
+        @code {
+        protected override async Task OnInitializedAsync()
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+
+            if (user is null || !user.Identity!.IsAuthenticated)
+            {
+                Navigation.NavigateTo("/login", true);
+            }
+        }
+        }
+    </NotAuthorized>
+</AuthorizeView>

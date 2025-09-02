@@ -36,11 +36,11 @@ namespace ShoeStore.Data
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Configure Categories - Products relationship (One-to-Many)
-            modelBuilder.Entity<Product>()
-                .HasOne(p => p.Categories)
-                .WithMany(c => c.Product)
-                .HasForeignKey(p => p.CategoryId)
-                .OnDelete(DeleteBehavior.Cascade);
+            //modelBuilder.Entity<Product>()
+            //    .HasOne(p => p.Categories)
+            //    .WithMany(c => c.Product)
+            //    .HasForeignKey(p => p.CategoryId)
+            //    .OnDelete(DeleteBehavior.Cascade);
 
             // Configure Product - ProductDetails relationship (One-to-One)
             modelBuilder.Entity<ProductDetails>()
@@ -91,19 +91,51 @@ namespace ShoeStore.Data
                 .HasForeignKey(ci => ci.SizesId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Wishlist - Users relationship
+
+
+
+            // Wishlist - Users relationship (CHANGE THIS)
             modelBuilder.Entity<Wishlist>()
                 .HasOne(w => w.Users)
                 .WithMany()
-                .HasForeignKey(w => w.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(w => w.User_Id)
+                .OnDelete(DeleteBehavior.NoAction); // Change from Cascade to NoAction
 
-            // Wishlist - ProductVariant relationship
+            // Wishlist - ProductVariant relationship (CHANGE THIS)
             modelBuilder.Entity<Wishlist>()
                 .HasOne(w => w.ProductVariant)
                 .WithMany()
                 .HasForeignKey(w => w.VariantsId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction); // Change from Cascade to NoAction
+
+            // Also change these to prevent future issues:
+            modelBuilder.Entity<ShippingAddress>()
+                .HasOne(sa => sa.Users)
+                .WithMany(u => u.Address)
+                .HasForeignKey(sa => sa.UserId)
+                .OnDelete(DeleteBehavior.NoAction); // Change from Cascade
+
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Categories)
+                .WithMany(c => c.Product)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction); // Change from Cascade
+
+
+
+            // Wishlist - Users relationship
+            //modelBuilder.Entity<Wishlist>()
+            //    .HasOne(w => w.Users)
+            //    .WithMany()
+            //    .HasForeignKey(w => w.User_Id)
+            //    .OnDelete(DeleteBehavior.Cascade);
+
+            // Wishlist - ProductVariant relationship
+            //modelBuilder.Entity<Wishlist>()
+            //    .HasOne(w => w.ProductVariant)
+            //    .WithMany()
+            //    .HasForeignKey(w => w.VariantsId)
+            //    .OnDelete(DeleteBehavior.Cascade);
             // Order - Users relationship
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Users)
@@ -112,11 +144,11 @@ namespace ShoeStore.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Order - ShippingAddress relationship
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.ShippingAddress)
-                .WithMany()
-                .HasForeignKey(o => o.ShippingAddressId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //modelBuilder.Entity<Order>()
+            //    .HasOne(o => o.ShippingAddress)
+            //    .WithMany()
+            //    .HasForeignKey(o => o.ShippingAddressId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
             // Order - StatusHistory relationship
             modelBuilder.Entity<OrderStatusHistory>()
@@ -147,7 +179,7 @@ namespace ShoeStore.Data
 
             // Unique constraint: One wishlist item per product per user
             modelBuilder.Entity<Wishlist>()
-                .HasIndex(w => new { w.UserId, w.VariantsId })
+                .HasIndex(w => new { w.User_Id, w.VariantsId })
                 .IsUnique();
 
             modelBuilder.Entity<Users>()

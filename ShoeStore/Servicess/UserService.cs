@@ -14,18 +14,21 @@ namespace ShoeStore.Servicess
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IConfiguration _configuration;
         private readonly PasswordHasher<Users> _passwordHasher;
+        private readonly IDataSerializer _dataSerializer;
 
         public UserService(
             IDbContextFactory<ApplicationDbContext> dbContextFactory,
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IDataSerializer dataSerializer)
         {
             _dbContextFactory = dbContextFactory;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _configuration = configuration;
             _passwordHasher = new PasswordHasher<Users>();
+            _dataSerializer = dataSerializer;
         }
 
         public async Task<Users?>FindUserByUsername(string username)
@@ -45,6 +48,7 @@ namespace ShoeStore.Servicess
         {
             try
             {
+                _dataSerializer.Serializer(user, "registrationModel:");
                 using (var context = _dbContextFactory.CreateDbContext())
                 {
                     context.Users.Add(user);

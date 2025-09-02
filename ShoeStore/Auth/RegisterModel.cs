@@ -17,8 +17,8 @@ public class RegisterModel
     [EmailAddress(ErrorMessage = "Invalid email format")]
     public string? UserEmail { get; set; }
 
-    [Required(ErrorMessage = "Contact number is required")]
-    [Phone(ErrorMessage = "Invalid phone number")]
+    //[Required(ErrorMessage = "Contact number is required")]
+    //[Phone(ErrorMessage = "Invalid phone number")]
     public string? UserContact { get; set; }
 
     [Required(ErrorMessage = "Password is required")]
@@ -26,7 +26,16 @@ public class RegisterModel
     [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
     public string? UserPassword { get; set; }
 
-    [Required(ErrorMessage = "User RoleMust be define")]
+    [Required(ErrorMessage = "Confirm Password is required")]
+    [DataType(DataType.Password)]
+    [Compare("UserPassword", ErrorMessage = "Confirm Password must match with Password")]
+    public string? ConfirmPassword { get; set; }
+
+    [Range(typeof(bool), "true", "true", ErrorMessage = "You must agree to terms")]
+    public bool AgreeToTerms { get; set; }
+
+
+    //[Required(ErrorMessage = "User RoleMust be define")]
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public UserRole? Role { get; set; }
     public bool IsActive { get; set; } = true;

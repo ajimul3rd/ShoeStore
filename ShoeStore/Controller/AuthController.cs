@@ -13,8 +13,9 @@ using ShoeStore.Servicess.Impl;
 using log4net;
 namespace ShoeStore.Controller
 {
-    [Route("api/[controller]")]
+
     [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IMapper _mapper;
@@ -23,22 +24,31 @@ namespace ShoeStore.Controller
         private readonly IPasswordService _passwordService;
         private readonly IConfiguration _configuration;
         private static readonly ILog _logger = LogManager.GetLogger(typeof(AuthController));
-       
+        private readonly IDataSerializer _dataSerializer;
+
 
         public AuthController(
             IUserService userService,
             ITokenService tokenService,
             IPasswordService passwordService,
             IConfiguration configuration,
-            IMapper mapper)
+            IMapper mapper,
+            IDataSerializer dataSerializer)
         {
             _userService = userService;
             _tokenService = tokenService;
             _passwordService = passwordService;
             _configuration = configuration;
             _mapper = mapper;
-         
+            _dataSerializer = dataSerializer;
 
+
+        }
+
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok("Login test successful!");
         }
 
         [HttpPost("register-client")]
@@ -101,8 +111,11 @@ namespace ShoeStore.Controller
         [HttpPost("register-admin")]
         public async Task<IActionResult> AdminRegister([FromBody] RegisterModel model)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            _dataSerializer.Serializer(model, "registrationModel:");
+
+            //if (!ModelState.IsValid)
+
+            //    return BadRequest(ModelState);
 
             if (await _userService.FindUserByUsername(model.UserName!) != null)
                 return Conflict("Username already exists");
@@ -125,8 +138,7 @@ namespace ShoeStore.Controller
                     new(ClaimTypes.Name, user.UserName!),
                     new(ClaimTypes.Role, user.Role.ToString()!),
                     new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new(JwtRegisteredClaimNames.Email, user.UserEmail !),
-                    new("Contact", user.UserContact !)
+                    new(JwtRegisteredClaimNames.Email, user.UserEmail !)
                 };
 
                 var token = GenerateJwtToken(claims);
@@ -154,6 +166,9 @@ namespace ShoeStore.Controller
             }
         }
 
+       
+
+
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginModel login)
         {
@@ -171,7 +186,7 @@ namespace ShoeStore.Controller
                     return Unauthorized("Account disabled");
 
                 var claims = GenerateUserClaims(_mapper.Map<Users>(user));
-                var token = GenerateJwtToken(claims); 
+                var token = GenerateJwtToken(claims);
                 var refreshToken = _tokenService.GenerateRefreshToken();
 
                 await _userService.UpdateRefreshToken(_mapper.Map<Users>(user).UserId, refreshToken);
@@ -230,7 +245,7 @@ namespace ShoeStore.Controller
             }
             catch (Exception ex)
             {
-                _logger.Error("Error occurred while updating user.",ex);
+                _logger.Error("Error occurred while updating user.", ex);
                 return StatusCode(StatusCodes.Status500InternalServerError, "An unexpected error occurred while updating the user.");
             }
         }

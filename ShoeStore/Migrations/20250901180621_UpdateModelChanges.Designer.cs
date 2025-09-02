@@ -12,8 +12,8 @@ using ShoeStore.Data;
 namespace ShoeStore.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250830095557_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250901180621_UpdateModelChanges")]
+    partial class UpdateModelChanges
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -311,9 +311,14 @@ namespace ShoeStore.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("ProductId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Products");
                 });
@@ -565,7 +570,7 @@ namespace ShoeStore.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("UserId")
+                    b.Property<int>("User_Id")
                         .HasColumnType("int");
 
                     b.Property<int>("VariantsId")
@@ -575,7 +580,7 @@ namespace ShoeStore.Migrations
 
                     b.HasIndex("VariantsId");
 
-                    b.HasIndex("UserId", "VariantsId")
+                    b.HasIndex("User_Id", "VariantsId")
                         .IsUnique();
 
                     b.ToTable("Wishlists");
@@ -613,7 +618,7 @@ namespace ShoeStore.Migrations
                     b.HasOne("ShoeStore.Model.Entity.ShippingAddress", "ShippingAddress")
                         .WithMany()
                         .HasForeignKey("ShippingAddressId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ShoeStore.Model.Entity.Users", "Users")
@@ -670,10 +675,18 @@ namespace ShoeStore.Migrations
                     b.HasOne("ShoeStore.Model.Entity.Categories", "Categories")
                         .WithMany("Product")
                         .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("ShoeStore.Model.Entity.Users", "Users")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Categories");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("ShoeStore.Model.Entity.ProductDetails", b =>
@@ -703,7 +716,7 @@ namespace ShoeStore.Migrations
                     b.HasOne("ShoeStore.Model.Entity.Users", "Users")
                         .WithMany("Address")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Users");
@@ -735,14 +748,14 @@ namespace ShoeStore.Migrations
                 {
                     b.HasOne("ShoeStore.Model.Entity.Users", "Users")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("User_Id")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("ShoeStore.Model.Entity.ProductVariant", "ProductVariant")
                         .WithMany()
                         .HasForeignKey("VariantsId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("ProductVariant");

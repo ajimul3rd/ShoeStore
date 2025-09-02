@@ -1,0 +1,37 @@
+﻿@page "/logout"
+@inject NavigationManager Navigation
+ @using Blazored.LocalStorage
+ @using Microsoft.AspNetCore.Components.Authorization
+ @inject HttpClient Http
+ @inject NavigationManager Navigation
+ @inject ILocalStorageService LocalStorage
+ @inject AuthenticationStateProvider AuthStateProvider
+ @rendermode InteractiveServer
+
+<h1>Login out Page</h1>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Clear tokens from local storage
+            await LocalStorage.RemoveItemAsync("authToken");
+            await LocalStorage.RemoveItemAsync("refreshToken");
+
+            // Notify authentication state change
+            if (AuthStateProvider is CustomAuthStateProvider authProvider)
+            {
+                await authProvider.NotifyUserLogout();
+            }
+
+            // Redirect to login page
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout error: {ex.Message}");
+            Navigation.NavigateTo("/login", forceLoad: true);
+        }
+    }
+}

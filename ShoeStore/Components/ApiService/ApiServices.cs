@@ -9,14 +9,14 @@ namespace ShoeStore.Components.ApiService
     {
         private readonly HttpClient _httpClient;
         private readonly ILocalStorageService _localStorage;
-        private readonly IDataSerializer? _DataSerializer;
+        private readonly IDataSerializer? _dataSerializer;
         private readonly IAuthHeaderService _authHeaderService;
 
-        public ApiServices(HttpClient httpClient, ILocalStorageService localStorage, IDataSerializer? DataSerializer, IAuthHeaderService authHeaderService)
+        public ApiServices(HttpClient httpClient, ILocalStorageService localStorage, IDataSerializer? dataSerializer, IAuthHeaderService authHeaderService)
         {
             _httpClient = httpClient;
             _localStorage = localStorage;
-            _DataSerializer = DataSerializer;
+            _dataSerializer = dataSerializer;
             _authHeaderService = authHeaderService;
         }      
 
@@ -37,6 +37,7 @@ namespace ShoeStore.Components.ApiService
         // Register Admin
         public async Task<AuthResponse> RegisterAdminAsync(RegisterModel model)
         {
+            //_dataSerializer.Serializer(model, "registrationModel:");
             var response = await _httpClient.PostAsJsonAsync("api/auth/register-admin", model);
             response.EnsureSuccessStatusCode();
 
